@@ -16,9 +16,23 @@ if(!empty($_POST)){
 		$error['password'] = 'blank';
 	}
 	
+	
+	$fileName = $_FILES['image']['name']; // アップロードされたファイル名
+	if (!empty($fileName)) {
+		// ファイルの拡張子を3文字切り取り
+		$ext = substr($fileName, -3);
+		if ( $ext != 'jpg' && $ext != 'png' && $ext != 'gif') {
+			$error['image'] = 'type';
+		}
+	}
+	
 	if(empty($error)){
+		// アップロード時にファイル名が被らないようにする
+		$image = date('YmdHis') . $_FILES['image']['name'];
+		// $_FILES(グローバル変数,inputのファイルから得られたデータ) 第二引数に保存先
+		move_uploaded_file($_FILES['image']['tmp_name'],'../member_picture/' . $image);
 		$_SESSION['join'] = $_POST;
-
+		$_SESSION['join']['image'] = $image;
 		// check.phpにジャンプする命令
 		header('Location: check.php');
 		exit();
@@ -52,6 +66,7 @@ if ($_REQUEST['action'] == 'rewrite' && isset($_SESSION['join'])) {
 
 <div id="content">
 <p>次のフォームに必要事項をご記入ください。</p>
+<!-- ファイルのアップロードにはecctype...決まり文句 -->
 <form action="" method="post" enctype="multipart/form-data">
 	<dl>
 		<dt>ニックネーム<span class="required">必須</span></dt>
@@ -74,12 +89,18 @@ if ($_REQUEST['action'] == 'rewrite' && isset($_SESSION['join'])) {
 			<p class="error">*パスワードは必須です。</p>
 			<?php endif; ?>
 			<?php if($error['password'] === 'length'): ?>
-			<p class="error">パスワードは8文字以上で入力してください。</p>
+			<p class="error">*パスワードは8文字以上で入力してください。</p>
 			<?php endif; ?>
         </dd>
 		<dt>写真など</dt>
 		<dd>
         	<input type="file" name="image" size="35" value="test"  />
+			<?php if($error['image'] === 'type'): ?>
+				<p class="error">*写真などは「.gif」または「.png, jpg」の画像を指定してください。</p>
+			<?php endif; ?>
+			<?php if(!empty($error)):  ?>
+			<p class="error">恐れ入りますがもう一度画像を指定してください。</p>
+			<?php endif; ?>
         </dd>
 	</dl>
 	<div><input type="submit" value="入力内容を確認する" /></div>
