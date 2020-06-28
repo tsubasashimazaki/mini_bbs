@@ -1,4 +1,5 @@
 <?php 
+session_start();
 // リクエスト送信された時にが空だったらエラー
 if(!empty($_POST)){
 
@@ -16,11 +17,19 @@ if(!empty($_POST)){
 	}
 	
 	if(empty($error)){
-		
+		$_SESSION['join'] = $_POST;
+
 		// check.phpにジャンプする命令
 		header('Location: check.php');
 		exit();
 	}
+}
+
+	// check.phpのhistory.back時
+if ($_REQUEST['action'] == 'rewrite' && isset($_SESSION['join'])) {
+
+	// check.phpで$_SESSEIONで保存された内容を$_POSTに保管 → $_POSTは''ではないのでエラーは出ないし、valueで値が出力される
+	$_POST = $_SESSION['join'];
 }
 
 ?>
