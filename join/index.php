@@ -1,5 +1,6 @@
 <?php 
 session_start();
+require('../dbconnect.php');
 // リクエスト送信された時にが空だったらエラー
 if(!empty($_POST)){
 
@@ -23,6 +24,17 @@ if(!empty($_POST)){
 		$ext = substr($fileName, -3);
 		if ( $ext != 'jpg' && $ext != 'png' && $ext != 'gif') {
 			$error['image'] = 'type';
+		}
+	}
+
+	//アカウントの重複チェック
+	if( empty($error)) {
+	// membersテーブルのemailに絞り込む
+		$member = $db->prepare('SELECT COUNT(*) AS cnt FROM members WHERE email=?');
+		$member->execute(array($_POST['email']));
+		$record = $member->fetch();
+		if ($record['cnt'] > 0 ) {
+			$error['email'] = 'deplicate'; //deplicateのエラーメッセージ
 		}
 	}
 	
@@ -83,6 +95,10 @@ if ($_REQUEST['action'] == 'rewrite' && isset($_SESSION['join'])) {
 			<?php if($error['email'] === 'blank'): ?>
 				<p class="error">*メールアドレスは必須です。</p>
 			<?php endif; ?>
+			<!-- アカウント重複チェック -->
+			<?php if($error['email'] === 'deplicate'): ?>
+				<p class="error">指定されたメールアドレスは既に登録されています。</p>
+			<?php endif;?>
 		<dt>パスワード<span class="required">必須</span></dt>
 		<dd>
         	<input type="password" name="password" size="10" maxlength="20" value="<?php echo (htmlspecialchars($_POST['password'], ENT_QUOTES)); ?>" />
