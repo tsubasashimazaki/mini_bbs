@@ -46,6 +46,7 @@ if ($_REQUEST['action'] == 'rewrite' && isset($_SESSION['join'])) {
 	$_POST = $_SESSION['join'];
 }
 
+
 ?>
 
 <!DOCTYPE html>
@@ -101,6 +102,11 @@ if ($_REQUEST['action'] == 'rewrite' && isset($_SESSION['join'])) {
 			<?php if(!empty($error)):  ?>
 			<p class="error">恐れ入りますがもう一度画像を指定してください。</p>
 			<?php endif; ?>
+			<?php 
+			if ($_REQUEST['action'] === 'rewrite'): ?>
+				<p class="error">恐れ入りますがもう一度画像を指定してください。</p>
+			<?php endif;?>
+			
         </dd>
 	</dl>
 	<div><input type="submit" value="入力内容を確認する" /></div>

@@ -1,10 +1,27 @@
-<?php session_start(); 
+<?php 
+session_start(); 
+require('../dbconnect.php');
 
 	if (!isset($_SESSION['join'])) {
 		header('Location: index.php');
 		exit();
 	}
+	if(!empty($_POST)) {
+		
+		$statement = $db->prepare('INSERT INTO members SET name=?, email=?, password=?, picture=?, created=NOW()');
+	
+		echo $statement->execute(array(
+		$_SESSION['join']['name'],
+		$_SESSION['join']['email'],
+		sha1($_SESSION['join']['password']),
+		$_SESSION['join']['image']
+	));
+	// unset():データベースの内容を削除する　データベースの入力等を終えたら削除して重複を防ぐ
+	unset($_SESSION['join']);
 
+	header('Location: thanks.php');
+	exit();
+	}
 ?>
 
 
@@ -27,6 +44,7 @@
 <div id="content">
 <p>記入した内容を確認して、「登録する」ボタンをクリックしてください</p>
 <form action="" method="post">
+	<!-- hiddenタイプのコントローラ -->
 	<input type="hidden" name="action" value="submit" />
 	<dl>
 		<dt>ニックネーム</dt>
@@ -44,10 +62,17 @@
         </dd>
 		<dt>パスワード</dt>
 		<dd>
-		【表示されません】
+		【********】
 		</dd>
 		<dt>写真など</dt>
 		<dd>
+		<!-- 確認画面に画像を表示 -->
+		<?php if($_SESSION['join']['image'] !== ''): ?>
+		<img src="../member_picture/<?php echo(htmlspecialchars($_SESSION['join']['image'], ENT_QUOTES)); ?>" alt="プロフィール画像">
+		<?php endif; ?>
+		<?php 
+		
+		?>
 		</dd>
 	</dl>
 	<!-- URLリクエストを指定 -->
