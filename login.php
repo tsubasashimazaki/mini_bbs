@@ -1,7 +1,32 @@
 <?php 
+session_start();
 require('dbconnect.php');
 
 // login.phpかフォームボタンが押されたのか判断
+if (!empty($_POST)) { //POSTが空でなければ判別
+  if ($_POST['email'] !== '' && $_POST['password'] !== ''){
+    $login = $db->prepare('SELECT * FROM members WHERE email=? AND password=?');
+    $login->execute(array(
+      $_POST['email'],
+      sha1($_POST['password'])
+    ));
+    $member = $login->fetch();
+    if($member) { //データベースからの返り値と入力された値が同じであれば
+      $_SESSION['id'] = $member['id'];
+      $_SESSION['time'] = time();
+      // ログインした情報をセッション変数に入れておく
+      header('Location: index.php');
+      exit();
+
+    } else {
+      $error['login'] = 'failed';
+    }
+  }else {
+    //どちらかがからの場合
+    $error['login'] = 'blank';
+  }
+
+}
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -26,11 +51,17 @@ require('dbconnect.php');
       <dl>
         <dt>メールアドレス</dt>
         <dd>
-          <input type="text" name="email" size="35" maxlength="255" value="<?php echo htmlspecialchars($_POST['email']); ?>" />
+          <input type="text" name="email" size="35" maxlength="255" value="<?php echo htmlspecialchars($_POST['email'], ENT_QUOTES); ?>" />
+          <?php if($error['login'] === 'failed'): ?>
+            <p class="error">メールアドレスかパスワードが正しくありません</p>
+          <?php endif; ?>
+          <?php if($error['login'] === 'blank'): ?>
+            <p class="error">メールアドレスとパスワードを正しくご記入ください</p>
+          <?php endif; ?>
         </dd>
         <dt>パスワード</dt>
         <dd>
-          <input type="password" name="password" size="35" maxlength="255" value="<?php echo htmlspecialchars($_POST['password']); ?>" />
+          <input type="password" name="password" size="35" maxlength="255" value="<?php echo htmlspecialchars($_POST['password'], ENT_QUOTES); ?>" />
         </dd>
         <dt>ログイン情報の記録</dt>
         <dd>
