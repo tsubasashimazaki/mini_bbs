@@ -2,8 +2,13 @@
 session_start();
 require('dbconnect.php');
 
+if ($_COOKIE['email'] !== '') {
+  $email = $_COOKIE['email'];
+}
+
 // login.phpかフォームボタンが押されたのか判断
-if (!empty($_POST)) { //POSTが空でなければ判別
+if (!empty($_POST)) { //POSTが空でなければ判別=ログインボタンがクリックされた時には
+  $email = $_POST['email']; // 
   if ($_POST['email'] !== '' && $_POST['password'] !== ''){
     $login = $db->prepare('SELECT * FROM members WHERE email=? AND password=?');
     $login->execute(array(
@@ -14,6 +19,12 @@ if (!empty($_POST)) { //POSTが空でなければ判別
     if($member) { //データベースからの返り値と入力された値が同じであれば
       $_SESSION['id'] = $member['id'];
       $_SESSION['time'] = time();
+
+      // ログイン情報の記憶
+      if($_POST['save'] === 'on') {
+        setcookie('email', $_POST['email'], time()+60*60+24+14);
+      }
+      
       // ログインした情報をセッション変数に入れておく
       header('Location: index.php');
       exit();
@@ -51,7 +62,7 @@ if (!empty($_POST)) { //POSTが空でなければ判別
       <dl>
         <dt>メールアドレス</dt>
         <dd>
-          <input type="text" name="email" size="35" maxlength="255" value="<?php echo htmlspecialchars($_POST['email'], ENT_QUOTES); ?>" />
+          <input type="text" name="email" size="35" maxlength="255" value="<?php echo htmlspecialchars($email, ENT_QUOTES); ?>" />
           <?php if($error['login'] === 'failed'): ?>
             <p class="error">メールアドレスかパスワードが正しくありません</p>
           <?php endif; ?>
