@@ -1,3 +1,17 @@
+<?php 
+session_start();
+// login.phpでログインしていればセッション変数に値をいれているので、それがあるかで判断
+
+if(isset($_SESSION['id']) && $_SESSION['time'] + 3600 > time()) { //1時間後にはログアウト // $_SESSION['id']はlogin.phpを参照
+  $_SESSION['time'] = time(); //投稿すれば変数を上書きしてログイン時間を伸ばせる
+
+  $members = $db->prepare('SELECT * FROM members WHERE id=?');
+  $members->execute(array($_SESSION['id']));// IDはセッションの中に記録されているので会員情報を引っ張り出す。
+} else {
+  header('Location:login.php');
+  exit();
+}
+?>
 <!DOCTYPE html>
 <html lang="ja">
 <head>

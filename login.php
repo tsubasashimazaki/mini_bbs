@@ -8,9 +8,9 @@ if ($_COOKIE['email'] !== '') {
 
 // login.phpかフォームボタンが押されたのか判断
 if (!empty($_POST)) { //POSTが空でなければ判別=ログインボタンがクリックされた時には
-  $email = $_POST['email']; // 
+  $email = $_POST['email']; // ログインボタンが押されたら＄_POSTを＄emailに入れるよ
   if ($_POST['email'] !== '' && $_POST['password'] !== ''){
-    $login = $db->prepare('SELECT * FROM members WHERE email=? AND password=?');
+    $login = $db->prepare('SELECT * FROM members WHERE email=? AND password=?'); 
     $login->execute(array(
       $_POST['email'],
       sha1($_POST['password'])
