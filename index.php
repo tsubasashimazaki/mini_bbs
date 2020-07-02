@@ -1,12 +1,13 @@
 <?php 
 session_start();
+require('dbconnect.php');
 // login.phpでログインしていればセッション変数に値をいれているので、それがあるかで判断
-
 if(isset($_SESSION['id']) && $_SESSION['time'] + 3600 > time()) { //1時間後にはログアウト // $_SESSION['id']はlogin.phpを参照
   $_SESSION['time'] = time(); //投稿すれば変数を上書きしてログイン時間を伸ばせる
 
   $members = $db->prepare('SELECT * FROM members WHERE id=?');
   $members->execute(array($_SESSION['id']));// IDはセッションの中に記録されているので会員情報を引っ張り出す。
+  $member = $members->fetch(); // ログインしているユーザーの情報
 } else {
   header('Location:login.php');
   exit();
@@ -32,7 +33,8 @@ if(isset($_SESSION['id']) && $_SESSION['time'] + 3600 > time()) { //1時間後�
   	<div style="text-align: right"><a href="logout.php">ログアウト</a></div>
     <form action="" method="post">
       <dl>
-        <dt>○○さん、メッセージをどうぞ</dt>
+        <!-- fetch()でログインしてる名前を表示 -->
+        <dt><?php echo(htmlspecialchars($member['name'], ENT_QUOTES)) ?>さん、メッセージをどうぞ</dt>
         <dd>
           <textarea name="message" cols="50" rows="5"></textarea>
           <input type="hidden" name="reply_post_id" value="" />
