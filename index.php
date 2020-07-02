@@ -15,10 +15,12 @@ if(isset($_SESSION['id']) && $_SESSION['time'] + 3600 > time()) { //1時間後�
 
 if(!empty($_POST)) {
   if($_POST['message'] !== '') {
-    $message = $db->prepare('INSERT INTO posts SET member_id=?, message=?, created=NOW()');
+    $message = $db->prepare('INSERT INTO posts SET member_id=?, message=?, reply_message_id=?, created=NOW()');
+    
     $message->execute(array(
       $member['id'], // $_SESSION['id']と同じだがデータベースから取得した方が正確性が上がる
       $_POST['message'], // 投稿したメッセージ
+      $_POST['reply_post_id'], //データベースにどの投稿に返信したのか
     ));
 
     header('Location:index.php'); // 投稿して再読み込みすると$_POSTが投稿データを持ち続けた状態になるので強制的に自身の画面を呼び出してリセットをかける
@@ -33,6 +35,17 @@ p.* 投稿された全てのデータ
 m.id=p.member_idでリレーション。　投稿者と投稿されるデータは1対多の関係になる為リレーションすること
 */
 $posts = $db->query('SELECT m.name, m.picture, p.* FROM members m, posts p WHERE m.id=p.member_id ORDER BY p.created DESC'); //mやpはテーブルのショートカット名
+
+// Reを押した時に返信先を指定する
+if (isset($_REQUEST['res'])) {//resアクションがリクエスト=セットされていれば=クリックされたら
+  
+  $response = $db->prepare('SELECT m.name, m.picture, p.* FROM members m, posts p WHERE m.id=p.member_id AND p.id=?');
+
+  $response->execute(array($_REQUEST['res']));
+
+  $table = $response->fetch();
+  $message = '@' . $table['name'] . ' ' . $table['message'] . '→' ;
+} 
 
 
 ?>
@@ -60,8 +73,8 @@ $posts = $db->query('SELECT m.name, m.picture, p.* FROM members m, posts p WHERE
         <!-- fetch()でログインしてる名前を表示 -->
         <dt><?php echo(htmlspecialchars($member['name'], ENT_QUOTES)) ?>さん、メッセージをどうぞ</dt>
         <dd>
-          <textarea name="message" cols="50" rows="5"></textarea>
-          <input type="hidden" name="reply_post_id" value="" />
+          <textarea name="message" cols="50" rows="5"><?php echo(htmlspecialchars($message, ENT_QUOTES)); ?></textarea>
+          <input type="hidden" name="reply_post_id" value="<?php echo(htmlspecialchars($_REQUEST['res'], ENT_QUOTES)); ?>" />
         </dd>
       </dl>
       <div>
@@ -75,7 +88,7 @@ $posts = $db->query('SELECT m.name, m.picture, p.* FROM members m, posts p WHERE
 
     <div class="msg">
     <img src="member_picture/<?php echo(htmlspecialchars($post['picture'], ENT_QUOTES)); //echoしたものはファイル名のみなのでディレクトリも必要?>" width="48" height="48" alt="<?php echo(htmlspecialchars($post['name'], ENT_QUOTES)); ?>" />
-    <p><?php echo(htmlspecialchars($post['message'], ENT_QUOTES)); ?><span class="name">（<?php echo(htmlspecialchars($post['name'], ENT_QUOTES)); ?>）</span>[<a href="index.php?res=">Re</a>]</p>
+    <p><?php echo(htmlspecialchars($post['message'], ENT_QUOTES)); ?><span class="name">（<?php echo(htmlspecialchars($post['name'], ENT_QUOTES)); ?>）</span>[<a href="index.php?res=<?php echo(htmlspecialchars($post['id'], ENT_QUOTES)); ?>">Re</a>]</p>
     <p class="day"><a href="view.php?id="><?php echo(htmlspecialchars($post['created'], ENT_QUOTES)); ?></a>
 <a href="view.php?id=">
 返信元のメッセージ</a>
