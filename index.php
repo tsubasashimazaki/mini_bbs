@@ -36,7 +36,7 @@ m.id=p.member_idでリレーション。　投稿者と投稿されるデータ�
 */
 $posts = $db->query('SELECT m.name, m.picture, p.* FROM members m, posts p WHERE m.id=p.member_id ORDER BY p.created DESC'); //mやpはテーブルのショートカット名
 
-// Reを押した時に返信先を指定する
+// Reを押した時に返信先を指定+リレーション
 if (isset($_REQUEST['res'])) {//resアクションがリクエスト=セットされていれば=クリックされたら
   
   $response = $db->prepare('SELECT m.name, m.picture, p.* FROM members m, posts p WHERE m.id=p.member_id AND p.id=?');
@@ -89,13 +89,16 @@ if (isset($_REQUEST['res'])) {//resアクションがリクエスト=セット�
     <div class="msg">
     <img src="member_picture/<?php echo(htmlspecialchars($post['picture'], ENT_QUOTES)); //echoしたものはファイル名のみなのでディレクトリも必要?>" width="48" height="48" alt="<?php echo(htmlspecialchars($post['name'], ENT_QUOTES)); ?>" />
     <p><?php echo(htmlspecialchars($post['message'], ENT_QUOTES)); ?><span class="name">（<?php echo(htmlspecialchars($post['name'], ENT_QUOTES)); ?>）</span>[<a href="index.php?res=<?php echo(htmlspecialchars($post['id'], ENT_QUOTES)); ?>">Re</a>]</p>
-    <p class="day"><a href="view.php?id="><?php echo(htmlspecialchars($post['created'], ENT_QUOTES)); ?></a>
-<a href="view.php?id=">
+    <p class="day"><a href="view.php?id=<?php echo(htmlspecialchars($post['id'], ENT_QUOTES));// createdを押すとモーダル表示 ?>"><?php echo(htmlspecialchars($post['created'], ENT_QUOTES));// 投稿時間(created)表示 ?></a>
+
+    <?php if($post['reply_message_id'] > 0)://返信されたメッセージだけリンクの表示  ?>
+<a href="view.php?id=<?php echo(htmlspecialchars($post['reply_message_id'])); ?>">
 返信元のメッセージ</a>
-[<a href="delete.php?id="
+    <?php endif; ?>
+[<a href="delete.php?id="<?php echo(htmlspecialchars($post['id'], ENT_QUOTES)); ?>
 style="color: #F33;">削除</a>]
     </p>
-    </div>
+    </div><!-- /msg -->
 <?php endforeach; ?>
 <ul class="paging">
 <li><a href="index.php?page=">前のページへ</a></li>
